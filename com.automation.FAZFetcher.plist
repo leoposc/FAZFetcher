@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+    <dict>
+        <key>Label</key>
+        <string>com.automation.FAZFetcher</string>
+
+        <key>RunAtLoad</key>
+        <true/>
+
+        <key>Program</key>
+        <string>/Path/To/FAZFetcher</string> <!-- ENTER PATH TO THE EXECUTABLE HERE -->
+
+        <key>StartInterval</key>
+        <interger>86400</interger> <!-- 1 day -->
+
+        <key>StandardOutPath</key>
+        <string>/Path/To/FAZFetcher.log</string> <!-- ENTER PATH TO THE LOG FILE HERE -->
+
+        <key>StandardErrorPath</key>
+        <string>/Path/To/FAZFetcher.log</string> <!-- ENTER PATH TO THE LOG FILE HERE -->
+
+
+    </dict>
+</plist> 

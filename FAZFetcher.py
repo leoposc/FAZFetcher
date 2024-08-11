@@ -1,15 +1,15 @@
 from dotenv import load_dotenv, find_dotenv
-import os
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.mime.base import MIMEBase
-import smtplib, ssl
-from email import encoders
-import requests
 from datetime import datetime, timedelta
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
+from email import encoders
+import smtplib, ssl
+import requests
+import os
 
 load_dotenv(find_dotenv())
 
@@ -63,6 +63,13 @@ def get_sunday_as_date():
     sunday = today - timedelta(days=days_behind)
     return sunday.strftime('%d.%m.%Y')
 
+def get_saturday_as_date():
+    today = datetime.today()
+    days_behind = today.weekday() + 2
+    if days_behind == 7: # if today is saturday
+        days_behind = 0
+    return today - timedelta(days=days_behind)
+
 
 # fetch the latest newpaper from FAZ (sunday edition)
 def get_newspaper():
@@ -103,7 +110,28 @@ def get_newspaper():
     response = session.get(download_link)
     return response.content
 
+def get_last_run():
+    with open('last_run.txt', 'r') as file:
+        last_run = file.read()
+    # handle case when file is empty
+    if last_run == '':
+        return datetime.min
+    return datetime.strptime(last_run, '%d.%m.%Y')
+
+def write_last_run():
+    with open('last_run.txt', 'w') as file:
+        file.write(get_saturday_as_date().strftime('%d.%m.%Y'))
+
+
+def check_for_new_paper():
+    if get_last_run() < get_saturday_as_date():
+        write_last_run()
+        return True
+    else:
+        return False
+
 
 if __name__ == '__main__':
-    send_mail(get_newspaper())
+    if check_for_new_paper():
+        send_mail(get_newspaper())
 

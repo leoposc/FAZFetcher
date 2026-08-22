@@ -64,12 +64,13 @@ def get_sunday_as_date():
     return sunday.strftime('%d.%m.%Y')
 
 def get_saturday_as_date():
-    today = datetime.today()
+    today = datetime.today().replace(hour=0, minute=0, second=0, microsecond=0)
     days_behind = today.weekday() + 2
     if days_behind == 7: # if today is saturday
         days_behind = 0
+    elif days_behind == 8: # if today is sunday
+        days_behind = 1
     return today - timedelta(days=days_behind)
-
 
 # fetch the latest newpaper from FAZ (sunday edition)
 def get_newspaper():
@@ -119,7 +120,7 @@ def get_last_run():
     return datetime.strptime(last_run, '%d.%m.%Y')
 
 def write_last_run():
-    with open('last_run.txt', 'w') as file:
+    with open('last_run.txt', 'w+') as file:
         file.write(get_saturday_as_date().strftime('%d.%m.%Y'))
 
 
@@ -130,8 +131,9 @@ def check_for_new_paper():
     else:
         return False
 
-
 if __name__ == '__main__':
     if check_for_new_paper():
         send_mail(get_newspaper())
+    else:
+        print('No new paper available')
 

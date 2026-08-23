@@ -3,6 +3,6 @@
 
 
 
-[FAZ Logo]!(./docs/logo.jpg)
+![FAZ Logo](./docs/logo.jpg)
 
 

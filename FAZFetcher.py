@@ -7,12 +7,13 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from email import encoders
+from typing import Any
 import smtplib, ssl
 import requests
 import argparse
 import os
 
-load_dotenv(find_dotenv())
+_ = load_dotenv(find_dotenv())
 
 KINDLE_MAILLIST = os.environ['KINDLE_MAILLIST']
 MAIL_USER = os.environ['MAIL_USER']
@@ -26,10 +27,10 @@ def send_mail(attachment):
 
     try:
         server = smtplib.SMTP('smtp.web.de', port)
-        server.ehlo()
-        server.starttls(context=context)
-        server.ehlo()
-        server.login(MAIL_USER, MAIL_PASSWORD)
+        _ = server.ehlo()
+        _ = server.starttls(context=context)
+        _ = server.ehlo()
+        _ = server.login(MAIL_USER, MAIL_PASSWORD)
     
         for receiver in KINDLE_MAILLIST.split(','):
             msg = MIMEMultipart()
@@ -105,7 +106,15 @@ def get_weekday_newspaper():
     # Navigate the page to scrape 
     date = get_weekday_as_datetime().strftime('%d.%m.%Y')
     download_link_id = 'EBUP+FAZ+Magazin' + date
-    download_link = driver.find_element(By.ID, download_link)
+    download_link: str | None = driver.find_element(
+        By.ID, download_link_id
+    ).get_attribute("href")
+    
+    if download_link is None:
+        raise RuntimeError(
+        f"Download link element '{download_link_id}' has no href attribute"
+    )
+
 
     # Download the file and send the cookies along with the request
     cookies = driver.get_cookies()
@@ -146,10 +155,17 @@ def get_newspaper():
 
     # Navigate to the page you want to scrape
     download_link_id = 'EPUB+FAS+Magazin+' + get_sunday_as_date()
-    download_link = driver.find_element(By.ID, download_link_id).get_attribute('href')
+    download_link: str | None = driver.find_element(
+        By.ID, download_link_id
+    ).get_attribute("href")
+    
+    if download_link is None:
+        raise RuntimeError(
+        f"Download link element '{download_link_id}' has no href attribute"
+    )
 
     # Download the file and send the cookies along with the request
-    cookies = driver.get_cookies()
+    cookies: list[dict[Any, Any]] = driver.get_cookies()
     driver.quit()
     session = requests.Session()
     for cookie in cookies:
@@ -170,9 +186,9 @@ def write_last_run(edition: str):
     filename: str = f'last_run_{edition}.txt'
     with open(filename, 'w+') as file:
         if edition == 'sunday':
-            file.write(get_saturday_as_datetime().strftime('%d.%m.%Y'))
+            _ = file.write(get_saturday_as_datetime().strftime('%d.%m.%Y'))
         else:
-            file.write(get_weekday_as_datetime().strftime('%d.%m.%Y'))
+            _ = file.write(get_weekday_as_datetime().strftime('%d.%m.%Y'))
 
 def check_for_new_weekdaypaper()-> bool:
     # Skip sundays 
@@ -193,10 +209,10 @@ def check_for_new_sundaypaper():
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
         prog='FAZFetcher',
-        description='Fetch the latest Frankfurter Allgemeine Zeitung. Use the parameters'\
+        description='Fetch the latest Frankfurter Allgemeine Zeitung. Use the parameters' + 
                     'to specify which news papers should be sent to your kindle. '
     )
-    parser.add_argument(
+    _ = parser.add_argument(
         '-e',
         '--editions',
         type=int,

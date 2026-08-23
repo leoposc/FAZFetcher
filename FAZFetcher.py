@@ -65,10 +65,10 @@ def get_sunday_as_date():
     return sunday.strftime('%d.%m.%Y')
 
 
-def get_weekday_as_date() :
-    return datetime.today().replace(hour=0, minute=0, second=0, microsecond=0).strftime('%d.%m.%Y')
+def get_weekday_as_datetime() -> datetime:
+    return datetime.today().replace(hour=0, minute=0, second=0, microsecond=0)
 
-def get_saturday_as_date():
+def get_saturday_as_datetime():
     today = datetime.today().replace(hour=0, minute=0, second=0, microsecond=0)
     days_behind = today.weekday() + 2
     if days_behind == 7: # if today is saturday
@@ -78,7 +78,7 @@ def get_saturday_as_date():
     return today - timedelta(days=days_behind)
 
 # fetch the latest newspaper from FAZ (weekday)
-def get_weekday_newspaper() -> bytes | Any:
+def get_weekday_newspaper():
     options = webdriver.ChromeOptions()
     options.headless = True
 
@@ -103,7 +103,18 @@ def get_weekday_newspaper() -> bytes | Any:
     driver.implicitly_wait(1)
 
     # Navigate the page to scrape 
-    download_link_id = 'EBUP+FAZ+Magazin' + get_weekday_as_date()
+    date = get_weekday_as_datetime().strftime('%d.%m.%Y')
+    download_link_id = 'EBUP+FAZ+Magazin' + date
+    download_link = driver.find_element(By.ID, download_link)
+
+    # Download the file and send the cookies along with the request
+    cookies = driver.get_cookies()
+    driver.quit()
+    session = requests.Session()
+    for cookie in cookies:
+        session.cookies.set(cookie['name'], cookie['value'])
+    response = session.get(download_link)
+    return response.content
 
 
 
@@ -148,7 +159,7 @@ def get_newspaper():
 
 def get_last_run(edition: str) -> datetime:
     filename: str = f'last_run_{edition}.txt'
-    with open(file=filename, 'r') as file:
+    with open(file=filename, mode='r') as file:
         last_run = file.read()
     # handle case when file is empty
     if last_run == '':
@@ -159,18 +170,22 @@ def write_last_run(edition: str):
     filename: str = f'last_run_{edition}.txt'
     with open(filename, 'w+') as file:
         if edition == 'sunday':
-            file.write(get_saturday_as_date().strftime('%d.%m.%Y'))
+            file.write(get_saturday_as_datetime().strftime('%d.%m.%Y'))
         else:
-            file.write(get_weekday_as_date().strftime('%d.%m.%Y'))
+            file.write(get_weekday_as_datetime().strftime('%d.%m.%Y'))
 
 def check_for_new_weekdaypaper()-> bool:
-    if get_last_run('weekday') < get_weekday_as_date():
+    # Skip sundays 
+    if get_weekday_as_datetime().weekday() == 6:
+        return False 
+
+    if get_last_run('weekday') < get_weekday_as_datetime():
         return True
     else:
         return False
 
 def check_for_new_sundaypaper():
-    if get_last_run(edition='sunday') < get_saturday_as_date():
+    if get_last_run(edition='sunday') < get_saturday_as_datetime():
         return True
     else:
         return False
@@ -197,16 +212,16 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     if args.editions in (0, 2): 
-        if check_for_new_weekdaypaper()
+        if check_for_new_weekdaypaper():
             send_mail(get_weekday_newspaper())
             write_last_run(edition='weekday')
         else:
-            print('No new paper available for today')
+            print('No new FAZ available for today.')
 
     if args.editions in (0, 1):
         if check_for_new_sundaypaper():
             send_mail(get_newspaper())
             write_last_run(edition='sunday')
         else:
-            print('No new Sunday paper available')
+            print('No new FAS available for this week.')
 

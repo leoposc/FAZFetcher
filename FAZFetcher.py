@@ -9,6 +9,7 @@ from selenium.webdriver.common.keys import Keys
 from email import encoders
 import smtplib, ssl
 import requests
+import argparse
 import os
 
 load_dotenv(find_dotenv())
@@ -63,6 +64,10 @@ def get_sunday_as_date():
     sunday = today - timedelta(days=days_behind)
     return sunday.strftime('%d.%m.%Y')
 
+
+def get_weekday_as_date() :
+    return datetime.today().replace(hour=0, minute=0, second=0, microsecond=0).strftime('%d.%m.%Y')
+
 def get_saturday_as_date():
     today = datetime.today().replace(hour=0, minute=0, second=0, microsecond=0)
     days_behind = today.weekday() + 2
@@ -72,7 +77,37 @@ def get_saturday_as_date():
         days_behind = 1
     return today - timedelta(days=days_behind)
 
-# fetch the latest newpaper from FAZ (sunday edition)
+# fetch the latest newspaper from FAZ (weekday)
+def get_weekday_newspaper() -> bytes | Any:
+    options = webdriver.ChromeOptions()
+    options.headless = True
+
+    # Set up Selenium WebDriver (e.g., ChromeDriver)
+    driver = webdriver.Chrome(options=options)
+
+    # Navigate to the login page
+    driver.get(url="https://aktion.faz.net/epub")
+
+    # Find the email and password input fields and the submit button
+    email_input = driver.find_element(by=By.NAME, value="email")
+    password_input = driver.find_element(By.NAME, value="password")
+
+    # Enter the credentials
+    email_input.send_keys(MAIL_FAZ)
+    password_input.send_keys(PASSWORD_FAZ)
+
+    # Submit the form
+    password_input.send_keys(Keys.RETURN)
+
+    # wawit for the login to complete
+    driver.implicitly_wait(1)
+
+    # Navigate the page to scrape 
+    download_link_id = 'EBUP+FAZ+Magazin' + get_weekday_as_date()
+
+
+
+# fetch the latest newspaper from FAZ (sunday edition)
 def get_newspaper():
     options = webdriver.ChromeOptions()
     options.headless = True
@@ -111,29 +146,67 @@ def get_newspaper():
     response = session.get(download_link)
     return response.content
 
-def get_last_run():
-    with open('last_run.txt', 'r') as file:
+def get_last_run(edition: str) -> datetime:
+    filename: str = f'last_run_{edition}.txt'
+    with open(file=filename, 'r') as file:
         last_run = file.read()
     # handle case when file is empty
     if last_run == '':
         return datetime.min
     return datetime.strptime(last_run, '%d.%m.%Y')
 
-def write_last_run():
-    with open('last_run.txt', 'w+') as file:
-        file.write(get_saturday_as_date().strftime('%d.%m.%Y'))
+def write_last_run(edition: str):
+    filename: str = f'last_run_{edition}.txt'
+    with open(filename, 'w+') as file:
+        if edition == 'sunday':
+            file.write(get_saturday_as_date().strftime('%d.%m.%Y'))
+        else:
+            file.write(get_weekday_as_date().strftime('%d.%m.%Y'))
 
+def check_for_new_weekdaypaper()-> bool:
+    if get_last_run('weekday') < get_weekday_as_date():
+        return True
+    else:
+        return False
 
-def check_for_new_paper():
-    if get_last_run() < get_saturday_as_date():
-        write_last_run()
+def check_for_new_sundaypaper():
+    if get_last_run(edition='sunday') < get_saturday_as_date():
         return True
     else:
         return False
 
 if __name__ == '__main__':
-    if check_for_new_paper():
-        send_mail(get_newspaper())
-    else:
-        print('No new paper available')
+    parser = argparse.ArgumentParser(
+        prog='FAZFetcher',
+        description='Fetch the latest Frankfurter Allgemeine Zeitung. Use the parameters'\
+                    'to specify which news papers should be sent to your kindle. '
+    )
+    parser.add_argument(
+        '-e',
+        '--editions',
+        type=int,
+        choices=[0, 1, 2],
+        default=2,
+        help=(
+            'Specify which edition should be fetched. '
+            '0 = Frankfurter Allgemeine Zeitung; '
+            '1 = Frankfurter Allgemeine Sonntagszeitung; '
+            '2 = Both'
+        )
+    )
+    args = parser.parse_args()
+
+    if args.editions in (0, 2): 
+        if check_for_new_weekdaypaper()
+            send_mail(get_weekday_newspaper())
+            write_last_run(edition='weekday')
+        else:
+            print('No new paper available for today')
+
+    if args.editions in (0, 1):
+        if check_for_new_sundaypaper():
+            send_mail(get_newspaper())
+            write_last_run(edition='sunday')
+        else:
+            print('No new Sunday paper available')
 

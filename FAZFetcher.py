@@ -8,6 +8,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from email import encoders
 from typing import Any
+from pathlib import Path
 import smtplib, ssl
 import requests
 import argparse
@@ -105,7 +106,7 @@ def get_weekday_newspaper():
 
     # Navigate the page to scrape 
     date = get_weekday_as_datetime().strftime('%d.%m.%Y')
-    download_link_id = 'EBUP+FAZ+Magazin' + date
+    download_link_id = 'EPUB+FAZ+Magazin+' + date
     download_link: str | None = driver.find_element(
         By.ID, download_link_id
     ).get_attribute("href")
@@ -174,8 +175,11 @@ def get_newspaper():
     return response.content
 
 def get_last_run(edition: str) -> datetime:
-    filename: str = f'last_run_{edition}.txt'
-    with open(file=filename, mode='r') as file:
+    file = Path(f'last_run_{edition}.txt')
+    # check if the file exists
+    if not file.exists():
+        file.touch()
+    with open(file, mode='r') as file:
         last_run = file.read()
     # handle case when file is empty
     if last_run == '':
@@ -234,7 +238,7 @@ if __name__ == '__main__':
         else:
             print('No new FAZ available for today.')
 
-    if args.editions in (0, 1):
+    if args.editions in (1, 2):
         if check_for_new_sundaypaper():
             send_mail(get_newspaper())
             write_last_run(edition='sunday')

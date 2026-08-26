@@ -37,7 +37,7 @@ def send_mail(attachment):
             msg = MIMEMultipart()
             msg['From'] = MAIL_USER
             msg['To'] = receiver
-            msg['Subject'] = 'FAZ'
+            msg['Subject'] = 'FAZ_' + datetime.today().strftime('%d.%m.%Y')
             msg.attach(MIMEText('Test', 'plain'))
             record = MIMEBase('application', 'epub+zip')
             record.set_payload(attachment)

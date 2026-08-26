@@ -18,13 +18,13 @@
         </array>
 
         <key>StartInterval</key>
-        <integer>86400</integer> <!-- 1 day -->
+        <integer>14400</integer> <!-- every 4 hours -->
 
         <key>StandardOutPath</key>
         <string>/Users/leopoldschmid/Projects/FAZFetcher/FAZFetcher.log</string> <!-- ENTER PATH TO THE LOG FILE HERE -->
 
         <key>StandardErrorPath</key>
-        <string>/Users/leopoldschmid/Projects/FAZFetcher/FAZFetcher.log</string> <!-- ENTER PATH TO THE LOG FILE HERE -->
+        <string>/Users/leopoldschmid/Projects/FAZFetcher/FAZFetcherError.log</string> <!-- ENTER PATH TO THE LOG FILE HERE -->
 
 
     </dict>

@@ -9,4 +9,8 @@ TODO: Add an option to automatically execute the script as soon as the device is
 
 ![FAZ Logo](./docs/logo.jpg)
 
+### Requirements
+
+For the script to work, it is necessary to have an ongoing subscription to the digital version of the Frankfurter Allgemeine Zeitung. 
+
 

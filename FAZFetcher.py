@@ -45,9 +45,9 @@ def send_mail(attachment):
             record.add_header('Content-Disposition', 'attachment; filename=FAZ.epub')
             msg.attach(record)
             server.sendmail(MAIL_USER, receiver, msg.as_string())
-            print('Email sent to ' + receiver)
+            print(datetime.now().strftime('[%d.%m.%Y:%H:%M]: ') + 'Email sent to ' + receiver)
     except Exception as e:
-        print('Something went wrong when trying to send the email')
+        print(datetime.now().strftime('[%d.%m.%Y:%H:%M]: ') + 'Something went wrong when trying to send the email')
         print(e)
     finally:
         server.quit()
@@ -236,12 +236,12 @@ if __name__ == '__main__':
             send_mail(get_weekday_newspaper())
             write_last_run(edition='weekday')
         else:
-            print('No new FAZ available for today.')
+            print(datetime.now().strftime('[%d.%m.%Y:%H:%M]: ') + 'No new FAZ available for today.')
 
     if args.editions in (1, 2):
         if check_for_new_sundaypaper():
             send_mail(get_newspaper())
             write_last_run(edition='sunday')
         else:
-            print('No new FAS available for this week.')
+            print(datetime.now().strftime('[%d.%m.%Y:%H:%M]: ') + 'No new FAS available for this week.')
 

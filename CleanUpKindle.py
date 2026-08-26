@@ -1,9 +1,13 @@
 
+from dotenv import load_dotenv, find_dotenv
 from pathlib import Path
 import time
 import os 
 
-KINDLE_PATH = "/Volumes/Kindle/documents/Downloads/"
+
+_ = load_dotenv(find_dotenv())
+
+KINDLE_PATH = os.environ['KINDLE_EBOOKS_PATH']
 DAYS = 30
 cutoff = time.time() - DAYS * 24 * 3600
 

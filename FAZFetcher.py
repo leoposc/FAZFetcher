@@ -34,15 +34,17 @@ def send_mail(attachment):
         _ = server.login(MAIL_USER, MAIL_PASSWORD)
     
         for receiver in KINDLE_MAILLIST.split(','):
+            filename = 'FAZ_' + datetime.today().strftime('%d.%m.%Y')
             msg = MIMEMultipart()
             msg['From'] = MAIL_USER
             msg['To'] = receiver
-            msg['Subject'] = 'FAZ_' + datetime.today().strftime('%d.%m.%Y')
+            msg['Subject'] = filename
             msg.attach(MIMEText('Test', 'plain'))
             record = MIMEBase('application', 'epub+zip')
             record.set_payload(attachment)
             encoders.encode_base64(record)
-            record.add_header('Content-Disposition', 'attachment; filename=FAZ.epub')
+            value=f'attachment; filename={filename}.epub'
+            record.add_header('Content-Disposition', value)
             msg.attach(record)
             server.sendmail(MAIL_USER, receiver, msg.as_string())
             print(datetime.now().strftime('[%d.%m.%Y:%H:%M]: ') + 'Email sent to ' + receiver)
